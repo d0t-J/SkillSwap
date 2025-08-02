@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useMatching } from "../hooks/useMatching";
 import { auth } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 export default function MatchForm() {
+    const navigate = useNavigate();
     const [offer, setOffer] = useState("");
     const [request, setRequest] = useState("");
     const { currentMatch, isSearching, findMatch } = useMatching();
@@ -41,9 +43,7 @@ export default function MatchForm() {
                     </p>
                     <button
                         className="w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
-                        onClick={() => {
-                            /* We'll add chat navigation here */
-                        }}
+                        onClick={() => navigate(`/chat/${currentMatch.id}`)}
                     >
                         Start Learning Session
                     </button>

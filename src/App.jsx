@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import { auth } from "./firebase";
 import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { useMatching } from "./hooks/useMatching";
 import MatchForm from "./components/MatchForm";
 import ChatRoom from "./components/ChatRoom";
 
@@ -16,17 +15,16 @@ export default function App() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Listen for auth state changes
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                // User is signed in
                 setUser(user);
                 setIsLoading(false);
             } else {
-                // User is signed out, sign them in anonymously
                 signInAnonymously(auth)
-                    .then(() => {
+                    .then((result) => {
                         console.log("Anonymous sign-in successful");
+                        setUser(result.user);
+                        setIsLoading(false);
                     })
                     .catch((error) => {
                         console.error("Anonymous sign-in failed:", error);
@@ -38,20 +36,36 @@ export default function App() {
         return unsubscribe;
     }, []);
 
-    // While checking auth state
     if (isLoading) {
-        return <div className="p-8 text-center">Loading…</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p>Loading SkillSwap...</p>
+                </div>
+            </div>
+        );
     }
 
-    // Now we have a user (anonymous or otherwise), show the form
     return (
-        <div className="min-h-screen bg-gray-100">
-            <header className="p-4 bg-white shadow">
-                <h1 className="text-2xl">SkillSwap</h1>
-            </header>
-            <main className="p-8">
-                <MatchForm />
-            </main>
-        </div>
+        <Router>
+            <div className="min-h-screen bg-gray-100">
+                <header className="bg-white shadow-sm border-b">
+                    <div className="max-w-7xl mx-auto px-4 py-4">
+                        <h1 className="text-2xl font-bold text-blue-600">
+                            SkillSwap
+                        </h1>
+                    </div>
+                </header>
+
+                <main className="flex-1">
+                    <Routes>
+                        <Route path="/" element={<MatchForm />} />
+                        <Route path="/chat/:matchId" element={<ChatRoom />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </main>
+            </div>
+        </Router>
     );
 }
