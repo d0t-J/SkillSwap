@@ -1,8 +1,15 @@
-// src/App.jsx
 import React, { useEffect, useState } from "react";
+import {
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    Navigate,
+} from "react-router-dom";
 import { auth } from "./firebase";
 import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import { useMatching } from "./hooks/useMatching";
 import MatchForm from "./components/MatchForm";
+import ChatRoom from "./components/ChatRoom";
 
 export default function App() {
     const [user, setUser] = useState(null);
