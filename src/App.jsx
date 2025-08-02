@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { auth } from "./firebase";
 import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import Homepage from "./components/Homepage";
 import MatchForm from "./components/MatchForm";
 import ChatRoom from "./components/ChatRoom";
 
@@ -49,26 +50,28 @@ export default function App() {
 
     return (
         <Router>
-            <div className="min-h-screen bg-gray-100">
-                <header className="bg-white shadow-sm border-b">
-                    <div className="max-w-7xl mx-auto px-4 py-4">
-                        <h1 className="text-2xl font-bold text-blue-600">
-                            SkillSwap
-                        </h1>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+                <header className="bg-white shadow-sm border-b border-slate-200">
+                    <div className="max-w-7xl mx-auto px-6 py-6">
+                        <div className="flex items-center">
+                            <div className="text-3xl mr-3">🤝</div>
+                            <div>
+                                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+                                    SkillSwap
+                                </h1>
+                                <p className="text-sm text-slate-600">
+                                    Learn together, grow together
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </header>
 
-                <main className="flex-1 flex flex-col p-4">
+                <main className="flex-1 py-8">
                     <Routes>
-                        <Route path="/" element={<MatchForm />} />
-                        <Route
-                            path="/chat/:matchId"
-                            element={
-                                <div className="flex-1 flex flex-col">
-                                    <ChatRoom />
-                                </div>
-                            }
-                        />
+                        <Route path="/" element={<Homepage />} />
+                        <Route path="/match" element={<MatchForm />} />
+                        <Route path="/chat/:matchId" element={<ChatRoom />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </main>

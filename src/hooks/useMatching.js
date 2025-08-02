@@ -8,6 +8,9 @@ import {
     addDoc,
     getDocs,
     serverTimestamp,
+    updateDoc,
+    doc,
+    deleteDoc,
 } from "firebase/firestore";
 
 export function useMatching() {
@@ -44,6 +47,19 @@ export function useMatching() {
         setIsSearching(true);
 
         try {
+            // First, check if user already has a pending request
+            const existingRequestQuery = query(
+                collection(db, "match-requests"),
+                where("userId", "==", auth.currentUser.uid),
+                where("status", "==", "pending")
+            );
+            const existingRequests = await getDocs(existingRequestQuery);
+
+            // Delete any existing pending requests
+            for (const doc of existingRequests.docs) {
+                await deleteDoc(doc.ref);
+            }
+
             // Look for someone who offers what we want and wants what we offer
             const matchRequestsRef = collection(db, "match-requests");
             const potentialMatches = query(
@@ -56,9 +72,19 @@ export function useMatching() {
             const snapshot = await getDocs(potentialMatches);
 
             if (!snapshot.empty) {
-                // Found a match! Create our matched request
-                const partnerData = snapshot.docs[0].data();
+                // Found a match! Update both requests to "matched"
+                const partnerDoc = snapshot.docs[0];
+                const partnerData = partnerDoc.data();
 
+                // Update partner's request to matched
+                await updateDoc(partnerDoc.ref, {
+                    status: "matched",
+                    matchedWith: auth.currentUser.uid,
+                    partnerOffer: offerSkill,
+                    partnerRequest: requestSkill,
+                });
+
+                // Create our matched request
                 await addDoc(collection(db, "match-requests"), {
                     userId: auth.currentUser.uid,
                     offer: offerSkill,
@@ -70,25 +96,110 @@ export function useMatching() {
                     createdAt: serverTimestamp(),
                 });
             } else {
-                // No match found, but for testing purposes, let's simulate a match
+                // No match found, create a pending request
                 await addDoc(collection(db, "match-requests"), {
                     userId: auth.currentUser.uid,
                     offer: offerSkill,
                     request: requestSkill,
-                    status: "matched",
-                    matchedWith: "demo-partner-id",
-                    partnerOffer: requestSkill, // What you wanted to learn
-                    partnerRequest: offerSkill, // What you offered
+                    status: "pending",
                     createdAt: serverTimestamp(),
                 });
+
+                // Set up a listener for potential matches
+                const waitForMatch = onSnapshot(
+                    query(
+                        collection(db, "match-requests"),
+                        where("userId", "==", auth.currentUser.uid),
+                        where("status", "==", "matched")
+                    ),
+                    (snapshot) => {
+                        if (!snapshot.empty) {
+                            // Match found! Stop searching
+                            setIsSearching(false);
+                            waitForMatch(); // Unsubscribe
+                        }
+                    }
+                );
+
+                // Keep searching for 30 seconds, then timeout
+                setTimeout(() => {
+                    setIsSearching(false);
+                    waitForMatch(); // Unsubscribe
+                }, 30000);
             }
         } catch (error) {
             console.error("Error finding match:", error);
             throw error;
         } finally {
-            setIsSearching(false);
+            // Only set to false if we found an immediate match
+            if (!snapshot || snapshot.empty) {
+                // Keep searching...
+            } else {
+                setIsSearching(false);
+            }
         }
     };
 
-    return { currentMatch, isSearching, findMatch };
+    const cancelSearch = async () => {
+        try {
+            const pendingRequestQuery = query(
+                collection(db, "match-requests"),
+                where("userId", "==", auth.currentUser.uid),
+                where("status", "==", "pending")
+            );
+            const pendingRequests = await getDocs(pendingRequestQuery);
+
+            for (const doc of pendingRequests.docs) {
+                await deleteDoc(doc.ref);
+            }
+
+            setIsSearching(false);
+        } catch (error) {
+            console.error("Error canceling search:", error);
+        }
+    };
+
+    const clearAllMatches = async () => {
+        try {
+            if (!auth.currentUser) return;
+
+            // Clear all matched requests for current user
+            const matchedRequestQuery = query(
+                collection(db, "match-requests"),
+                where("userId", "==", auth.currentUser.uid),
+                where("status", "==", "matched")
+            );
+            const matchedRequests = await getDocs(matchedRequestQuery);
+
+            for (const docRef of matchedRequests.docs) {
+                await deleteDoc(docRef.ref);
+            }
+
+            // Clear all pending requests for current user
+            const pendingRequestQuery = query(
+                collection(db, "match-requests"),
+                where("userId", "==", auth.currentUser.uid),
+                where("status", "==", "pending")
+            );
+            const pendingRequests = await getDocs(pendingRequestQuery);
+
+            for (const docRef of pendingRequests.docs) {
+                await deleteDoc(docRef.ref);
+            }
+
+            // Reset local state
+            setCurrentMatch(null);
+            setIsSearching(false);
+        } catch (error) {
+            console.error("Error clearing matches:", error);
+        }
+    };
+
+    return {
+        currentMatch,
+        isSearching,
+        findMatch,
+        cancelSearch,
+        clearAllMatches,
+    };
 }
