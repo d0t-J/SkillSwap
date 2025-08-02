@@ -19,11 +19,6 @@ export default function MatchForm() {
 
     // If user has an active match, show match info instead of form
     if (currentMatch) {
-        const partnerId = currentMatch.participants.find(
-            (id) => id !== auth.currentUser?.uid
-        );
-        const partnerSkills = currentMatch.skills[partnerId];
-
         return (
             <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md">
                 <h2 className="text-xl font-semibold mb-4 text-green-600">
@@ -31,17 +26,18 @@ export default function MatchForm() {
                 </h2>
                 <div className="space-y-3">
                     <p>
-                        <strong>You're teaching:</strong>{" "}
-                        {offer ||
-                            currentMatch.skills[auth.currentUser?.uid]?.offer}
+                        <strong>You're teaching:</strong> {currentMatch.offer}
                     </p>
                     <p>
-                        <strong>You're learning:</strong>{" "}
-                        {request ||
-                            currentMatch.skills[auth.currentUser?.uid]?.request}
+                        <strong>You're learning:</strong> {currentMatch.request}
                     </p>
                     <p>
-                        <strong>Partner offers:</strong> {partnerSkills?.offer}
+                        <strong>Partner offers:</strong>{" "}
+                        {currentMatch.partnerOffer}
+                    </p>
+                    <p>
+                        <strong>Partner wants:</strong>{" "}
+                        {currentMatch.partnerRequest}
                     </p>
                     <button
                         className="w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"

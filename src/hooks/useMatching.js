@@ -5,8 +5,6 @@ import {
     query,
     where,
     onSnapshot,
-    doc,
-    updateDoc,
     addDoc,
     getDocs,
     serverTimestamp,
@@ -20,11 +18,11 @@ export function useMatching() {
     useEffect(() => {
         if (!auth.currentUser) return;
 
-        const matchesRef = collection(db, "matches");
+        const matchRequestsRef = collection(db, "match-requests");
         const userMatchQuery = query(
-            matchesRef,
-            where("participants", "array-contains", auth.currentUser.uid),
-            where("status", "==", "active")
+            matchRequestsRef,
+            where("userId", "==", auth.currentUser.uid),
+            where("status", "==", "matched")
         );
 
         const unsubscribe = onSnapshot(userMatchQuery, (snapshot) => {
@@ -34,7 +32,8 @@ export function useMatching() {
                     id: snapshot.docs[0].id,
                     ...matchData,
                 });
-                setIsSearching(false);
+            } else {
+                setCurrentMatch(null);
             }
         });
 
@@ -46,9 +45,9 @@ export function useMatching() {
 
         try {
             // Look for someone who offers what we want and wants what we offer
-            const matchesRef = collection(db, "match-requests");
+            const matchRequestsRef = collection(db, "match-requests");
             const potentialMatches = query(
-                matchesRef,
+                matchRequestsRef,
                 where("offer", "==", requestSkill),
                 where("request", "==", offerSkill),
                 where("status", "==", "pending")
@@ -57,31 +56,19 @@ export function useMatching() {
             const snapshot = await getDocs(potentialMatches);
 
             if (!snapshot.empty) {
-                // Found a match!
-                const partnerDoc = snapshot.docs[0];
-                const partnerData = partnerDoc.data();
+                // Found a match! Create our matched request
+                const partnerData = snapshot.docs[0].data();
 
-                // Create active match session
-                const matchRef = await addDoc(collection(db, "matches"), {
-                    participants: [auth.currentUser.uid, partnerData.userId],
-                    skills: {
-                        [auth.currentUser.uid]: {
-                            offer: offerSkill,
-                            request: requestSkill,
-                        },
-                        [partnerData.userId]: {
-                            offer: partnerData.offer,
-                            request: partnerData.request,
-                        },
-                    },
-                    status: "active",
+                await addDoc(collection(db, "match-requests"), {
+                    userId: auth.currentUser.uid,
+                    offer: offerSkill,
+                    request: requestSkill,
+                    status: "matched",
+                    matchedWith: partnerData.userId,
+                    partnerOffer: partnerData.offer,
+                    partnerRequest: partnerData.request,
                     createdAt: serverTimestamp(),
                 });
-
-                // Remove both match requests
-                await updateDoc(partnerDoc.ref, { status: "matched" });
-
-                return matchRef.id;
             } else {
                 // No match found, add to pending requests
                 await addDoc(collection(db, "match-requests"), {
@@ -91,13 +78,12 @@ export function useMatching() {
                     status: "pending",
                     createdAt: serverTimestamp(),
                 });
-
-                return null; // Still searching
             }
         } catch (error) {
             console.error("Error finding match:", error);
-            setIsSearching(false);
             throw error;
+        } finally {
+            setIsSearching(false);
         }
     };
 
