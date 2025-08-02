@@ -1,12 +1,58 @@
-# React + Vite
+# SkillSwap
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SkillSwap is a modern web application that connects people who want to exchange skills and knowledge. Whether you're looking to learn a new skill or share your expertise with others, SkillSwap provides a platform to find like-minded individuals in your community.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+-   **Skill Exchange**: Connect with others to trade skills and knowledge
+-   **User Profiles**: Create profiles showcasing your skills and what you want to learn
+-   **Real-time Communication**: Built with modern web technologies for seamless interaction
+-   **Responsive Design**: Optimized for both desktop and mobile devices
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+-   **Frontend**: React 19.1+ with Vite for fast development
+-   **Styling**: Tailwind CSS for modern, responsive design
+-   **Backend**: Firebase for real-time database and authentication
+-   **Build Tool**: Vite for optimized builds and hot module replacement
+
+## Getting Started
+
+### Prerequisites
+
+-   Node.js (version 16 or higher)
+-   npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+
+    ```bash
+    git clone https://github.com/d0t-J/SkillSwap.git
+    cd skillswap
+    ```
+
+2. Install dependencies:
+
+    ```bash
+    npm install
+    ```
+
+3. Start the development server:
+
+    ```bash
+    npm run dev
+    ```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+### Available Scripts
+
+-   `npm run dev` - Start the development server
+-   `npm run build` - Build the app for production
+-   `npm run preview` - Preview the production build locally
+-   `npm run lint` - Run ESLint to check code quality
+
+## Contributing
+
+We welcome contributions to SkillSwap! Please feel free to submit issues, feature requests, and pull requests.
