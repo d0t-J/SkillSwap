@@ -70,12 +70,15 @@ export function useMatching() {
                     createdAt: serverTimestamp(),
                 });
             } else {
-                // No match found, add to pending requests
+                // No match found, but for testing purposes, let's simulate a match
                 await addDoc(collection(db, "match-requests"), {
                     userId: auth.currentUser.uid,
                     offer: offerSkill,
                     request: requestSkill,
-                    status: "pending",
+                    status: "matched",
+                    matchedWith: "demo-partner-id",
+                    partnerOffer: requestSkill, // What you wanted to learn
+                    partnerRequest: offerSkill, // What you offered
                     createdAt: serverTimestamp(),
                 });
             }

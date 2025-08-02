@@ -58,10 +58,17 @@ export default function App() {
                     </div>
                 </header>
 
-                <main className="flex-1">
+                <main className="flex-1 flex flex-col p-4">
                     <Routes>
                         <Route path="/" element={<MatchForm />} />
-                        <Route path="/chat/:matchId" element={<ChatRoom />} />
+                        <Route
+                            path="/chat/:matchId"
+                            element={
+                                <div className="flex-1 flex flex-col">
+                                    <ChatRoom />
+                                </div>
+                            }
+                        />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </main>
