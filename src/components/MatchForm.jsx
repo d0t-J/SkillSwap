@@ -23,7 +23,7 @@ export default function MatchForm() {
             setRequest("");
         } catch (err) {
             console.error("Error adding match:", err);
-            setStatus("Submission failed. Try again.");
+            setStatus("Submission failed. Please try again.");
         }
     };
 
